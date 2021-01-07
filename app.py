@@ -5,12 +5,13 @@ from _terrain.plot import simple_triptych
 
 import panel as pn
 from panel.template.theme import DarkTheme
+
 pn.extension()
+pn.config.sizing_mode = 'scale_both'
 
 react = pn.template.ReactTemplate(title='model-gui', theme=DarkTheme)
-#canvas = react.theme.bokeh_theme._json['attrs']['ColorBar']['background_fill_color']
-canvas = '#121212'
-pn.config.sizing_mode = 'scale_both'
+canvas_color = '#121212'
+axis_color = react.theme.bokeh_theme._json['attrs']['Axis']['axis_label_text_color']
 
 #---User controls start here--#
 resolution = pn.widgets.IntSlider(name="Resolution", start=10, end=300, value=30)
@@ -26,8 +27,8 @@ def triptych(resolution, sigma, date_index=-6, view_fn=simple_triptych):
 
     test = Topography(filename)
     grids = test.return_grids(params['R'], params['S'])
-    return view_fn(filename=filename, grids=grids, 
-                    bounds=c.BOUNDS, params=params)
+    return view_fn(fn=filename, grids=grids, bounds=c.BOUNDS, params=params,
+                    canvas_color=canvas_color, axis_color=axis_color)
 
 # append elements to sidebar
 react.sidebar.append(resolution)
