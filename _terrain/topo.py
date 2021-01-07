@@ -1,8 +1,9 @@
 import os
 import numpy as np
 from scipy import linalg, interpolate, ndimage
-import richdem as rd
 from tempfile import TemporaryFile
+import richdem as rd
+import _terrain.config as c
 
 class Topography():
     '''
@@ -26,13 +27,18 @@ class Topography():
             assert(not(np.any((Northing < bounds[2])|(Northing > bounds[3])))), 'Northing out of range.'
             assert(not(np.any((Elevation < bounds[4])|(Elevation > bounds[5])))), 'Elevation out of range.'
 
-        self.xyz = import_xyz(topo_path=TOPO_PATH, topo_fname=topo_fname, bounds=BOUNDS)
+            return xyz
+
+        self.xyz = import_xyz(topo_path=c.TOPO_PATH, topo_fname=topo_fname, bounds=c.BOUNDS)
 
     #---Planar methods
 
-    def planar_attributes(self):
+    def planar_attrib(self):
         '''
         finds the slope and aspect for the planar fit returned by inner function fit_plane()
+        the equations used herein are my rewrites of methods described at the following two links:
+            https://pro.arcgis.com/en/pro-app/latest/tool-reference/spatial-analyst/how-slope-works.htm
+            https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-aspect-works.htm
         '''
         def fit_plane(xyz):
             '''
@@ -80,7 +86,7 @@ class Topography():
 
     #---Grid Methods
 
-    def return_grids(self, ):
+    def return_grids(self, resolution, sigma):
         '''
         interpolates a grid from xyz columnar topographic data,
         then outputs gaussian, slope, & aspect arrays
@@ -93,8 +99,8 @@ class Topography():
             '''
             Easting, Northing, Elevation = xyz[:,0], xyz[:,1], xyz[:,2]
 
-            xi = np.linspace(EAST_MIN, EAST_MAX, self.resolution)
-            yi = np.linspace(NORTH_MIN, NORTH_MAX, self.resolution)
+            xi = np.linspace(c.EAST_MIN, c.EAST_MAX, resolution)
+            yi = np.linspace(c.NORTH_MIN, c.NORTH_MAX, resolution)
 
             return interpolate.griddata((Easting, Northing), Elevation, 
                                         (xi[None,:], yi[:,None]), method='nearest')
@@ -106,15 +112,16 @@ class Topography():
             arrays into rdarrays.
             '''
             out_array = rd.rdarray(in_array, no_data=no_data)
-            out_array.projection = PROJECTION
-            out_array.geotransform = geotransform
+            out_array.projection = c.PROJECTION
+            cell_scale = np.around(a=c.SIDE_LEN/resolution, decimals=5)
+            out_array.geotransform = [0, cell_scale, 0, 0, 0, cell_scale]
             return out_array
         
-        def calc_grid_attributes(self, grid):
+        def calc_grid_attributes(grid):
             '''
             given input grid, returns slope and aspect grids
             '''
-            rda = self.np2rdarray(np.asarray(grid), -9999)
+            rda = np2rdarray(np.asarray(grid), -9999)
 
             slope_outfile = TemporaryFile()
             np.save(slope_outfile, rd.TerrainAttribute(rda, attrib='slope_radians'))
@@ -132,13 +139,17 @@ class Topography():
             return slope_grid, aspect_grid
 
         grid = interpolate_grid(xyz=self.xyz)
-        gauss_grid = ndimage.gaussian_filter(grid, sigma=self.sigma)
+        gauss_grid = ndimage.gaussian_filter(grid, sigma=sigma)
         slope_grid, aspect_grid = calc_grid_attributes(grid=gauss_grid)
 
         return gauss_grid, slope_grid, aspect_grid
 
 
 #TEST SECTION
-
-test = Topography(TOPO_LIST[0])
-print(test.xyz.shape)
+'''
+print(c.TOPO_LIST[0])
+test = Topography(c.TOPO_LIST[0])
+print(test.xyz)
+print(test.planar_attrib())
+print(test.return_grids(30, 2.0))
+'''
