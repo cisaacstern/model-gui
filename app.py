@@ -1,7 +1,7 @@
 
-import _terrain.config as c
-from _terrain.topo import Topography
-from _terrain.plot import simple_triptych
+import terrain.config as c
+from terrain.topo import Topography
+from terrain.plot import plot_grids
 
 import panel as pn
 from panel.template.theme import DarkTheme
@@ -18,7 +18,7 @@ resolution = pn.widgets.IntSlider(name="Resolution", start=10, end=300, value=30
 sigma = pn.widgets.FloatSlider(name="Sigma", start=0.0, end=3.0, value=2) 
 
 @pn.depends(resolution=resolution, sigma=sigma)
-def triptych(resolution, sigma, date_index=-6, view_fn=simple_triptych):
+def grids(resolution, sigma, date_index=-6, view_fn=plot_grids):
     '''
 
     '''
@@ -35,6 +35,6 @@ react.sidebar.append(resolution)
 react.sidebar.append(sigma)
 
 # Unlike other templates the `ReactTemplate.main` area acts like a GridSpec 
-react.main[:4, :6] = triptych
+react.main[:4, :6] = grids
 
 react.servable()

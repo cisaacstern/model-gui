@@ -2,7 +2,7 @@ import toml, os, datetime, itertools
 
 #load config.toml
 cwd = os.getcwd()
-path = os.path.join(cwd, '_terrain', '_settings', 'config.toml')
+path = os.path.join(cwd, 'terrain', 'settings', 'config.toml')
 config = toml.load(path)
 #add config to locals
 locals().update(config)
