@@ -1,8 +1,11 @@
-import toml, os, datetime, itertools
+import toml
+import os
+import datetime
+import itertools
 
 #load config.toml
 cwd = os.getcwd()
-path = os.path.join(cwd, 'terrain', 'settings', 'config.toml')
+path = os.path.join(cwd,'terrain-corrector','terrain','settings','config.toml')
 config = toml.load(path)
 #add config to locals
 locals().update(config)
@@ -11,11 +14,11 @@ BOUNDS = [*EAST_BOUNDS, *NORTH_BOUNDS, *ELEV_BOUNDS]
 EAST_MIN, EAST_MAX, NORTH_MIN, NORTH_MAX, ELEV_MIN, ELEV_MAX = BOUNDS
 
 #create a list of topo data files
-TOPO_PATH = os.path.join(cwd, 'data', 'topo')
+TOPO_PATH = os.path.join(cwd, 'terrain-corrector', 'data', 'topo')
 TOPO_LIST = [file for file in os.listdir(TOPO_PATH)]
 TOPO_LIST.sort()
 #...and a list of timeseries data files
-TIME_PATH = os.path.join(cwd, 'data', 'time')
+TIME_PATH = os.path.join(cwd, 'terrain-corrector', 'data', 'time')
 TIME_LIST = [file for file in os.listdir(TIME_PATH)]
 TIME_LIST.sort()
 #assert that lengths of these two lists are equal
