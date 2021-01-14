@@ -81,4 +81,4 @@ header = pn.pane.HTML(
 )
 react.header.append(header)
 
-react.servable()
+servable = react.servable()
