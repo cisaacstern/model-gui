@@ -1,6 +1,8 @@
 matplotlib==3.3.2
 numpy==1.19.2
+pandas
 panel==0.10.2
+pysolar
 richdem==0.3.4
 scipy==1.5.2
 toml==0.10.2
