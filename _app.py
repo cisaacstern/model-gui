@@ -9,7 +9,8 @@ from panel.template.theme import DarkTheme
 
 import terrain.config as c
 from terrain.topo import Topography
-from terrain.time import TimeSeries, Correction
+from terrain.time import TimeSeries
+from terrain.params import Correction, Horizon
 from terrain.plot import plot_grids, generate_titles, plot_sun
 
 pn.extension()
@@ -21,13 +22,16 @@ axis_color = react.theme.bokeh_theme._json['attrs']['Axis']['axis_label_text_col
 
 class Interact(param.Parameterized):
     '''
-    Brings everything together.
+    A paramaterized classed in the mold of Panel example.
     '''
+    #---parameters---#
     nums = list(c.DATE_DICT.values()) #update this
     date = param.Selector(default=70, objects=nums)
-    resolution = param.Integer(150, bounds=(10, 300))
+    resolution = param.Integer(150, bounds=(10, 300), step=10)
     sigma = param.Number(1.0, bounds=(0.0, 3.0))
     bins = param.Integer(32, bounds=(8,64), step=8)
+    #---preview controls---#
+    time = param.Integer(5, bounds=(0,100)) #needs regen each time 
 
     def set_view_attributes(self):
         '''
@@ -36,7 +40,7 @@ class Interact(param.Parameterized):
         it deliberately sets instance variables.
         '''
         self.fname = c.TOPO_LIST[self.date]
-        self.params = {'R': self.resolution, 'S': self.sigma}
+        self.params = {'R':self.resolution, 'S':self.sigma, 'B':self.bins}
 
         test = Topography(self.fname)
         self.grids = test.return_grids(self.params['R'], self.params['S'])
@@ -57,7 +61,7 @@ class Interact(param.Parameterized):
                         cmaps=cmaps, d=dims, axis_color=axis_color, canvas_color=canvas_color)
 
 
-    @param.depends('date', 'bins')#, 'time')
+    @param.depends('date', 'bins', 'time')
     def view_sun(self, view_fn=plot_sun):
         '''
 
@@ -66,10 +70,12 @@ class Interact(param.Parameterized):
         self.df = ts.reassign_bins(self.bins, ts.df)
         _dict = ts.generate_angle_dict(self.bins)
 
-        return view_fn(df=self.df, angle_dict=_dict, time=5, bins=self.bins,
-                        canvas_color=canvas_color, axis_color=axis_color)
+        dims = {'figsize':(4,5), 'top':1, 'bottom':0, 'left':0.2, 'right':0.95}
 
-    #@param.depends('date', 'resolution', 'sigma', 'bins', 'obscure', 'time')
+        return view_fn(df=self.df, angle_dict=_dict, time=self.time, bins=self.bins,
+                        canvas_color=canvas_color, axis_color=axis_color, d=dims)
+
+    @param.depends('date', 'resolution', 'sigma', 'bins', 'time')#'obscure', 
     def view_correction(self, view_fn=plot_grids):
         '''
         
@@ -80,18 +86,22 @@ class Interact(param.Parameterized):
         corr_array = corr.calculate_correction(
             grids=slope_and_aspect_grids, 
             df=self.df,
-            time=5
+            time=self.time
         )
 
         titles = generate_titles(fn=self.fname, params=self.params, _type='time')
         cmaps = ['magma', 'binary']
-        dims = {'figsize':(8.25,5), 'dpi':80, 'wspace':0.1, 'hspace':0, 
+        dims = {'figsize':(8,5), 'dpi':80, 'wspace':0.1, 'hspace':0, 
                 'top':0.85, 'bottom':0.05, 'left':0.095, 'right':0.95}
 
         # corr_horizon_array = corr.calculate_horizons
         grids = [corr_array, self.grids[0]] 
         return view_fn(grids=grids, params=self.params, titles=titles, 
                         cmaps=cmaps, d=dims, axis_color=axis_color, canvas_color=canvas_color)
+
+    def run_model(self):
+        # can i call the same functions?
+        pass
 
 # append elements to template & call servable
 interact = Interact()

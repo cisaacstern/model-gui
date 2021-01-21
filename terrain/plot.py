@@ -15,7 +15,7 @@ def generate_titles(fn, params, _type):
         f'_type must be one of \'topo\' or \'time\', got f{_type}')
 
     title_date = fn[:4] + '-' + fn[4:6] + '-' + fn[6:8]
-    title_line_2 = f'\nR, S ={params["R"]}, {params["S"]}'
+    title_line_2 = f'\nR, S, B ={params["R"]}, {params["S"]}, {params["B"]}'
 
     if _type == 'topo':
         titles = [  
@@ -36,6 +36,8 @@ def plot_grids(grids, titles, params, cmaps, d,
     '''
 
     '''
+    plt.close('all')
+
     _len = len(grids)
     iterables = [grids, titles, cmaps]
     for i in range(len(iterables)):
@@ -96,12 +98,13 @@ def plot_grids(grids, titles, params, cmaps, d,
     return fig
 
 
-def plot_sun(df, angle_dict, time, bins, canvas_color, axis_color,
-            figsize=(4,5), top=1, bottom=0, left=0.2, right=0.99):
+def plot_sun(df, angle_dict, time, bins, canvas_color, axis_color, d):
     '''
 
     '''
-    fig = plt.figure(figsize=figsize)
+    plt.close('all')
+    
+    fig = plt.figure(figsize=d['figsize'])
 
     tks = [np.deg2rad(a) for a in np.linspace(0,360,8,endpoint=False)]
     xlbls = np.array(['N','45','E','135','S','225','W','315'])
@@ -135,7 +138,8 @@ def plot_sun(df, angle_dict, time, bins, canvas_color, axis_color,
     line1=f'{date} Sun Position'
     line2=f'Azi, SZA={np.around((np.rad2deg(x),y),1)}, Bins={bins}'
 
-    plt.subplots_adjust(top=top, bottom=bottom, left=left, right=right)
+    plt.subplots_adjust(top=d['top'], bottom=d['bottom'], 
+                        left=d['left'], right=d['right'])
 
     p = ax.get_position().get_points().flatten()
     ax_cbar = fig.add_axes([p[0]+0.085, 0.85, p[2]-p[0], 0.05])
@@ -144,4 +148,3 @@ def plot_sun(df, angle_dict, time, bins, canvas_color, axis_color,
 
     fig.patch.set_facecolor(canvas_color)
     return fig
-    
