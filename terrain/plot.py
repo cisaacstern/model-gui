@@ -44,7 +44,7 @@ def plot_grids(grids, titles, params, cmaps, d,
         arg = iterables[i]
         assert len(arg) == _len, f'{arg} length not {_len}.'
 
-    fig, ax = plt.subplots(1, _len, figsize=d['figsize'])
+    fig, ax = plt.subplots(1, _len, figsize=d['figsize'], dpi=d['dpi'])
 
     ranges = [(np.min(grids[i]), np.max(grids[i])) for i in range(_len-1)]
     ranges.append((-180, 180))
@@ -104,7 +104,7 @@ def plot_sun(df, angle_dict, time, bins, canvas_color, axis_color, d):
     '''
     plt.close('all')
     
-    fig = plt.figure(figsize=d['figsize'])
+    fig = plt.figure(figsize=d['figsize'], dpi=d['dpi'])
 
     tks = [np.deg2rad(a) for a in np.linspace(0,360,8,endpoint=False)]
     xlbls = np.array(['N','45','E','135','S','225','W','315'])

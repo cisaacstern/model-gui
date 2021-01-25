@@ -1,12 +1,6 @@
-'''
-
-'''
 import logging
-import codecs
 
 import param
-import panel as pn
-from panel.template.theme import DarkTheme
 
 import terrain.config as c
 from terrain.topo import Topography
@@ -17,17 +11,15 @@ from terrain.plot import plot_grids, generate_titles, plot_sun
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-pn.extension()
-pn.config.sizing_mode = 'scale_both'
-
-react = pn.template.ReactTemplate(title='', theme=DarkTheme)
-canvas_color = '#121212'
-axis_color = react.theme.bokeh_theme._json['attrs']['Axis']['axis_label_text_color']
-
 class Interact(param.Parameterized):
     '''
     A paramaterized classed in the mold of Panel example.
     '''
+    def __init__(self, axis_color, canvas_color):
+        super(Interact, self).__init__()
+        self.axis_color = axis_color
+        self.canvas_color = canvas_color
+
     #---parameters---#
     nums = list(c.DATE_DICT.values()) #update this
     date = param.Selector(default=70, objects=nums)
@@ -76,7 +68,8 @@ class Interact(param.Parameterized):
                 'left':0.05, 'right':0.97, 'top':0.79, 'bottom':0.1}
 
         return view_fn(grids=self.grids, params=self.params, titles=titles, 
-                        cmaps=cmaps, d=dims, axis_color=axis_color, canvas_color=canvas_color)
+                        cmaps=cmaps, d=dims, axis_color=self.axis_color, 
+                        canvas_color=self.canvas_color)
 
     #---------------------------------------------------------------------
     # Sun: Setter & Viewer
@@ -118,10 +111,12 @@ class Interact(param.Parameterized):
         '''
 
         '''
-        dims = {'figsize':(4,5), 'top':1, 'bottom':0, 'left':0.2, 'right':0.95}
+        dims = {'figsize':(4,5), 'dpi':80, 'top':1, 'bottom':0, 
+                'left':0.2, 'right':0.95}
 
-        return view_fn(df=self.df, angle_dict=self._dict, time=self.time, bins=self.bins,
-                        canvas_color=canvas_color, axis_color=axis_color, d=dims)
+        return view_fn(df=self.df, angle_dict=self._dict, time=self.time, 
+                        bins=self.bins, d=dims, canvas_color=self.canvas_color, 
+                        axis_color=self.axis_color)
 
     #---------------------------------------------------------------------
     # Correction: Setter & Viewer
@@ -180,12 +175,13 @@ class Interact(param.Parameterized):
         titles = generate_titles(fn=self.fname, params=self.params, _type='time')
         cmaps = ['magma', 'binary']
         dims = {'figsize':(8,5), 'dpi':80, 'wspace':0.1, 'hspace':0, 
-                'top':0.85, 'bottom':0.05, 'left':0.095, 'right':0.95}
+                'left':0.05, 'right':0.97, 'top':0.79, 'bottom':0.1}
 
         # corr_horizon_array = corr.calculate_horizons
         grids = [self.corr_array, self.mask] 
         return view_fn(grids=grids, params=self.params, titles=titles, 
-                        cmaps=cmaps, d=dims, axis_color=axis_color, canvas_color=canvas_color)
+                        cmaps=cmaps, d=dims, axis_color=self.axis_color, 
+                        canvas_color=self.canvas_color)
 
     #---------------------------------------------------------------------
     # Model runner
@@ -194,21 +190,3 @@ class Interact(param.Parameterized):
     def run_model(self):
         # can i call the same functions?
         pass
-
-# append elements to template & call servable
-interact = Interact()
-react.sidebar.append(interact.param)
-react.sidebar.append(interact.set_terrain)
-react.sidebar.append(interact.set_sun)
-react.sidebar.append(interact.set_horizons)
-react.sidebar.append(interact.set_correction)
-
-react.main[0:2, 0:6] = interact.view_terrain
-react.main[2:4, 0:2] = interact.view_sun
-react.main[2:4, 2:6] = interact.view_correction
-
-html_head = codecs.open("terrain-corrector/static/header.html", 'r')
-header = pn.pane.HTML(html_head.read())
-react.header.append(header)
-
-servable = react.servable()
