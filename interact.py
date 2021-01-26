@@ -1,6 +1,7 @@
 import logging
 
 import param
+import panel as pn
 
 import terrain.config as c
 from terrain.topo import Topography
@@ -9,7 +10,7 @@ from terrain.params import Correction, Horizon
 from terrain.plot import plot_grids, generate_titles, plot_sun
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 class Interact(param.Parameterized):
     '''
@@ -19,6 +20,7 @@ class Interact(param.Parameterized):
         super(Interact, self).__init__()
         self.axis_color = axis_color
         self.canvas_color = canvas_color
+        self._init_config()
 
     #---parameters---#
     nums = list(c.DATE_DICT.values()) #update this
@@ -27,18 +29,59 @@ class Interact(param.Parameterized):
     sigma = param.Number(1.0, bounds=(0.0, 3.0))
     bins = param.Integer(32, bounds=(8,64), step=8)
 
+    #---helper parameters---#
+    time = param.Integer(5, bounds=(0,100)) #needs regen each time 
+
+    # current_config = param.Dict(default={'a':'b'})
+
+    #---"previous" param values---#
     prev_date = 100
     prev_bin_count = 100
     prev_bin = 100
-    #---preview controls---#
-    time = param.Integer(5, bounds=(0,100)) #needs regen each time 
-
     prev_time = 5
+
+    #---------------------------------------------------------------------
+    # Config
+    #---------------------------------------------------------------------
+    def _init_config(self):
+        self.current_config = {
+            'Date': self.date,
+            'Resolution': self.resolution,
+            'Sigma': self.sigma,
+            'Bins': self.bins,
+            'Constants':{
+                'Bounds': {
+                    'East': c.EAST_BOUNDS,
+                    'North': c.NORTH_BOUNDS, 
+                    'Elevation': c.ELEV_BOUNDS
+                },
+                'Projection': c.PROJECTION,
+                'UTC_Offset': c.UTC_OFFSET,
+                'Lat_Long': c.LAT_LONG,
+                'Time_Resolution': c.TIME_RESOLUTION,
+            },
+        }
+
+    @param.depends('date', 'resolution', 'sigma', 'bins')
+    def update_config(self):
+        '''
+
+        '''
+        self.current_config['Date'] = self.date
+        self.current_config['Resolution'] = self.resolution
+        self.current_config['Sigma'] = self.sigma
+        self.current_config['Bins'] = self.bins
+        logger.debug('current_config updated to %s ', self.current_config)
+
+    def return_config(self):
+        '''
+
+        '''
+        return self.current_config
 
     #---------------------------------------------------------------------
     # Terrain: Setter & Viewer
     #---------------------------------------------------------------------
-
     @param.depends('date', 'resolution', 'sigma')
     def set_terrain(self):
         '''
