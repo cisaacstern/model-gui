@@ -30,9 +30,7 @@ class Interact(param.Parameterized):
     bins = param.Integer(32, bounds=(8,64), step=8)
 
     #---helper parameters---#
-    time = param.Integer(5, bounds=(0,100)) #needs regen each time 
-
-    # current_config = param.Dict(default={'a':'b'})
+    time = param.Integer(5, bounds=(0,100)) #needs regen each time
 
     #---"previous" param values---#
     prev_date = 100
@@ -46,19 +44,19 @@ class Interact(param.Parameterized):
     def _init_config(self):
         self.current_config = {
             'Date': self.date,
-            'Resolution': self.resolution,
+            'Res': self.resolution,
             'Sigma': self.sigma,
             'Bins': self.bins,
             'Constants':{
                 'Bounds': {
                     'East': c.EAST_BOUNDS,
                     'North': c.NORTH_BOUNDS, 
-                    'Elevation': c.ELEV_BOUNDS
+                    'Elev': c.ELEV_BOUNDS
                 },
-                'Projection': c.PROJECTION,
-                'UTC_Offset': c.UTC_OFFSET,
+                'Proj': c.PROJECTION,
+                'UTC_Off': c.UTC_OFFSET,
                 'Lat_Long': c.LAT_LONG,
-                'Time_Resolution': c.TIME_RESOLUTION,
+                'Time_Res': c.TIME_RESOLUTION,
             },
         }
 
@@ -68,10 +66,10 @@ class Interact(param.Parameterized):
 
         '''
         self.current_config['Date'] = self.date
-        self.current_config['Resolution'] = self.resolution
+        self.current_config['Res'] = self.resolution
         self.current_config['Sigma'] = self.sigma
         self.current_config['Bins'] = self.bins
-        logger.debug('current_config updated to %s ', self.current_config)
+        logger.info('Interact: current_config updated to %s ', self.current_config)
 
     def return_config(self):
         '''

@@ -25,24 +25,22 @@ interact = Interact(axis_color=axis_color, canvas_color=canvas_color)
 
 ##### start working area
 toggle = pn.widgets.Toggle(name='Toggle', button_type='success')
-container = pn.Row(name='modal_container')
-react.modal.append(container)
 
-def _update_modal_content(container=container):
+@pn.depends(interact.param.date, interact.param.resolution, 
+            interact.param.sigma, interact.param.bins)
+def return_modal_content(*args, **kwargs):
     '''
     
     '''
     logger.info('Updating modal content, current_config is %s', interact.current_config)
-    container.objects.clear()
-    content = str(interact.current_config)
-    container.objects.append(content)
-    
+    content = pn.pane.JSON(interact.current_config)
+    return pn.Row(content)
+
 @pn.depends(toggle.param.value)
 def open_modal(*args, **kwargs):
     '''
 
     '''
-    _update_modal_content()
     logger.debug('Opening modal window.')
     react.open_modal()
     toggle.param.value = False
@@ -54,7 +52,7 @@ date = pn.widgets.DiscreteSlider.from_param(interact.param.date)
 params = [date, interact.param.resolution, interact.param.sigma, 
             interact.param.bins, interact.param.time]
 
-modal_tools = [toggle, interact.update_config, open_modal]
+modal_tools = [toggle, open_modal, interact.update_config]
 
 setter_funcs = [interact.set_terrain, interact.set_sun, 
                 interact.set_horizons, interact.set_correction]
@@ -73,5 +71,7 @@ react.main[:4,:6] = gspec
 html = codecs.open("terrain-corrector/static/header.html", 'r')
 html = pn.pane.HTML(html.read())
 react.header.append(html)
+
+react.modal.append(return_modal_content)
 
 react.servable()
